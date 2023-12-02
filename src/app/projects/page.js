@@ -1,36 +1,40 @@
 "use client";
+
 import Layout from "@/components/layout";
 import { TOKEN, DATABASE_ID } from "../../../config";
-import { Client } from "@notionhq/client";
+import React from "react";
 import { useState } from "react";
 
-const notion = new Client({
-  auth: TOKEN,
-});
+export async function getData() {
+  const options = {
+    method: "POST",
+    headers: {
+      accept: "application/json",
+      "Notion-Version": "2022-06-28",
+      "content-type": "application/json",
+      Authentication: `Bearer ${TOKEN}`,
+      // Authentication: TOKEN,
+    },
+    body: JSON.stringify({ page_size: 100 }),
+  };
 
-const getStaticProps = async () => {
-  const result = await notion.databases.query({
-    database_id: DATABASE_ID,
-    sorts: [
-      {
-        property: "Last ordered",
-        direction: "ascending",
-      },
-    ],
-  });
-  return result;
-};
+  const res = fetch(
+    `https://api.notion.com/v1/databases/${DATABASE_ID}/query`,
+    options
+  )
+    .then((response) => response.json())
+    .then((response) => console.log(response))
+    .catch((err) => console.error(err));
+
+  // const result = await res.json();
+  console.log(res);
+  return {
+    props: { res },
+  };
+}
 
 const Project = () => {
-  const fetchData = async () => {
-    try {
-      const data = await getStaticProps();
-      console.log(data);
-    } catch (error) {
-      console.log(error("Error fetching getStaticProps: ", error));
-    }
-  };
-  console.log("fetchData: " + fetchData.data);
+  const [project, setProject] = useState(getData);
   return (
     <Layout>
       <h1>Project</h1>
